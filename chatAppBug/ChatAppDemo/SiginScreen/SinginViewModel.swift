@@ -49,9 +49,11 @@ class SinginViewModel {
     //MARK: -Fetch User
     func fetchUser() {
         self.users.removeAll()
-        FirebaseService.share.fetchUser { user in
-            self.users.append(contentsOf: user)
-        }
+        FirebaseService.share.fetchUser().subscribe {[weak self] users in
+            if let users = users.element {
+                self?.users.append(contentsOf: users)
+            }
+        }.disposed(by: disponeBag)
     }
     
     //MARK: Resgiter

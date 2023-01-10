@@ -76,15 +76,17 @@ class ListUserViewModel {
             guard let users = users.element else {return}
             for user in users {
                 FirebaseService.share.fetchMessageRxSwift(user, senderUser: currentUser).subscribe { data in
-                    let mess = Message(dict: data)
-                    if mess.receiverID == currentUser.id || mess.receiverID == user.id {
-                        self?.allMessages[user.id] = mess
-                        self?.message = Array((self?.allMessages.values)!)
-                        self?.message = self?.message.sorted {
-                            return $0.time > $1.time
-                        } ?? []
+                    if let data = data.element {
+                        let mess = Message(dict: data)
+                        if mess.receiverID == currentUser.id || mess.receiverID == user.id {
+                            self?.allMessages[user.id] = mess
+                            self?.message = Array((self?.allMessages.values)!)
+                            self?.message = self?.message.sorted {
+                                return $0.time > $1.time
+                            } ?? []
+                        }
+                        self?.messageBehaviorSubject.accept(self?.message ?? [])
                     }
-                    self?.messageBehaviorSubject.accept(self?.message ?? [])
                 }.disposed(by: self?.disposeBag ?? DisposeBag())
             }
         }.disposed(by: disposeBag)

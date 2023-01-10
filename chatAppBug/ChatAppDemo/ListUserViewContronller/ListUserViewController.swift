@@ -31,6 +31,8 @@ final class ListUserViewController: UIViewController {
     @IBOutlet private weak var heightSearchUserContrains: NSLayoutConstraint!
     @IBOutlet private weak var trailingSearchUserContrains: NSLayoutConstraint!
     @IBOutlet private weak var heightCollectionViewContrains: NSLayoutConstraint!
+    @IBOutlet private weak var bottomUserTableContrains: NSLayoutConstraint!
+    
     
     private var viewModel: ListUserViewModel!
     private var disponeBag = DisposeBag()
@@ -68,6 +70,7 @@ final class ListUserViewController: UIViewController {
         setuplbNewMessageNotification()
         setupBtCacncelSearchUser()
         setuplbNewMessageNotification()
+        keyBoardObserver()
     }
     
     private func onBind() {
@@ -116,8 +119,10 @@ final class ListUserViewController: UIViewController {
         }.disposed(by: disponeBag)
         //MARK: ModelSelected
         listAllUser.rx.modelSelected(User.self).subscribe {[weak self] user in
-            let vc = DetailViewViewController.instance(user, currentUser: currentUser)
-            self?.navigationController?.pushViewController(vc, animated: true)
+            if let user = user.element {
+                let vc = DetailViewViewController.instance(user, currentUser: currentUser)
+                self?.navigationController?.pushViewController(vc, animated: true)
+            }
         }.disposed(by: disponeBag)
         
         //MARK: MessageTableView
@@ -187,6 +192,12 @@ final class ListUserViewController: UIViewController {
         guard let currentuser = viewModel.getcurrentUser() else { return }
         lbNameUser.text = currentuser.name
     }
+    
+    private func keyBoardObserver() {
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+       
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
+   }
     
     private func setuplbNewMessageNotification() {
         lbNewMessageNotification.isHidden = true
@@ -260,5 +271,18 @@ extension ListUserViewController: UITextFieldDelegate {
             }
         }
         return true
+    }
+}
+
+extension ListUserViewController {
+    @objc func keyboardWillShow(_ sender: NSNotification) {
+        let keyboardframe = (sender.userInfo?[UIResponder.keyboardFrameEndUserInfoKey]! as! NSValue).cgRectValue.height
+        self.bottomUserTableContrains.constant = keyboardframe + 20
+        self.view.layoutIfNeeded()
+    }
+    
+    @objc func keyboardWillHide(_ sender: NSNotification) {
+        self.bottomUserTableContrains.constant = 10
+        self.view.layoutIfNeeded()
     }
 }

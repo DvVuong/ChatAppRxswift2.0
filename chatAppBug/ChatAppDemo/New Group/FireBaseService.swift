@@ -34,20 +34,17 @@ class FirebaseService {
        
     }
     
-    func fetchUser(_ completed: @escaping ([User]) -> Void) {
-        self.users.removeAll()
-        db.collection(_user).addSnapshotListener {[weak self] (querySnapshot, error) in
-            if error != nil {return}
-            guard let querySnapshot = querySnapshot?.documentChanges else { return }
-            self?.users.removeAll()
-            querySnapshot.forEach { doc in
-                if doc.type == .added || doc.type == .modified  {
-                    let value = User(dict: doc.document.data())
-                    self?.users.append(value)
-                }
+    func fetchUser() -> Observable<[User]> {
+        return Observable.create {[weak self] observable in
+            self?.db.collection(self?._user ?? "").addSnapshotListener { (querySnapshot, error) in
+                if error != nil {return}
+                guard let querySnapshot = querySnapshot?.documents else { return }
+                let users = querySnapshot.map({User(dict: $0.data())})
+                observable.onNext(users)
             }
-            completed(self?.users ?? [])
+            return Disposables.create()
         }
+        
     }
     
     // MARK: fetchMessage

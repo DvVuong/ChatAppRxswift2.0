@@ -37,10 +37,8 @@ final class CreateStatusViewController: UIViewController {
     }
     
     private func setupTextView() {
-
         tvInputText.layer.borderWidth = 0
         tvInputText.delegate = self
-
         tvInputText.becomeFirstResponder() 
     }
     
@@ -53,13 +51,8 @@ final class CreateStatusViewController: UIViewController {
         viewInputStatus.layer.borderColor = UIColor.systemGray.cgColor
         viewInputStatus.layer.cornerRadius = 8
         viewInputStatus.layer.masksToBounds = true
-
     }
-    
-    
 }
-
-
 
 extension CreateStatusViewController: CreateStatusPresenterViewDelegate {
     

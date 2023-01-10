@@ -9,6 +9,7 @@ import Firebase
 import FirebaseFirestore
 import RxSwift
 import RxCocoa
+import UIKit
 
 class DetailViewModel {
     //MARK: - Properties
@@ -17,8 +18,6 @@ class DetailViewModel {
     private var receiverUser: User?
     private var messages: [Message] = []
     let messageBehaviorSubject = BehaviorSubject(value: [Message]())
-    let stateUserPublisher = PublishSubject<[User]>()
-    let imageUserPublisher = PublishSubject<UIImage?>()
     private var db = Firestore.firestore()
     private var stateUser = [User]()
     private let _message = "message"
@@ -59,14 +58,16 @@ class DetailViewModel {
         guard let senderUser = self.currentUser else { return }
         self.messages.removeAll()
         FirebaseService.share.fetchMessageRxSwift(reciverUser, senderUser: senderUser).subscribe {[weak self] data in
-            let mess = Message(dict: data)
-            if mess.receiverID == reciverUser.id || mess.receiverID == senderUser.id {
-                self?.messages.append(mess)
-                self?.messages = self?.messages.sorted {
-                    $0.time < $1.time
-                } ?? []
+            if let data = data.element {
+                let mess = Message(dict: data)
+                if mess.receiverID == reciverUser.id || mess.receiverID == senderUser.id {
+                    self?.messages.append(mess)
+                    self?.messages = self?.messages.sorted {
+                        $0.time < $1.time
+                    } ?? []
+                }
+                self?.messageBehaviorSubject.onNext(self?.messages ?? [])
             }
-            self?.messageBehaviorSubject.onNext(self?.messages ?? [])
         }.disposed(by: bag)
     }
        
@@ -79,18 +80,23 @@ class DetailViewModel {
     }
     
     //MARK: -Fetch StateMessage
-    func fetchStateUser() {
-        var image: UIImage? = nil
-        guard let reciverUser = receiverUser else  {return}
-        FirebaseService.share.fetchUser { [weak self] user in
-            let userState = user.filter({$0.id == reciverUser.id})
-            self?.stateUserPublisher.onNext(userState)
-            userState.forEach { user in
-                ImageService.share.fetchImage(with: user.picture) { img in
-                  image = img
-                 self?.imageUserPublisher.onNext(image)
-                }
+    func fetchStateUser() -> Observable<([User], UIImage?)> {
+        return Observable.create { [weak self] observable in
+            var image: UIImage? = nil
+            if let reciverUser = self?.receiverUser {
+                FirebaseService.share.fetchUser().subscribe { users in
+                    if let user = users.element {
+                        let userState = user.filter({$0.id == reciverUser.id})
+                        userState.forEach { user in
+                            ImageService.share.fetchImage(with: user.picture) { img in
+                              image = img
+                                observable.onNext((userState, image))
+                            }
+                        }
+                    }
+                }.disposed(by: self?.bag ?? DisposeBag())
             }
+            return Disposables.create()
         }
     }
 }

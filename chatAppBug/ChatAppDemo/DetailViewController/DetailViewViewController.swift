@@ -52,7 +52,6 @@ final class DetailViewViewController: UIViewController {
         setupBtSend()
         setupConvertionTable()
         setupGoBackButton()
-        showStateReciverUser()
         keyBoardObserver()
     }
     
@@ -62,10 +61,6 @@ final class DetailViewViewController: UIViewController {
          NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
     
-    private func showStateReciverUser() {
-        viewModel.fetchStateUser()
-    }
-   
     private func setupGoBackButton() {
         goBack.setTitle("", for: .normal)
         goBack.addTarget(self, action: #selector(didTapBackListScreen(_:)), for: .touchUpInside)
@@ -113,17 +108,15 @@ final class DetailViewViewController: UIViewController {
         }
         .disposed(by: bag)
         //MARK: ShowUser, stateActive
-        viewModel.stateUserPublisher.subscribe {[weak self] users in
-            if let users = users.element {
+        viewModel.fetchStateUser().subscribe { [weak self] data in
+            guard let data = data.element else {return}
+             let users = data.0
                 users.forEach { user in
                     self?.lbNameUser.text  = user.name
                     self?.lbState.text = user.isActive ? "Active now" : "Not active"
                     self?.imgStateUser.tintColor = user.isActive ? .systemGreen : .systemGray
                 }
-            }
-        }.disposed(by: bag)
-        viewModel.imageUserPublisher.subscribe {[weak self] image in
-            if let image = image {
+            if let image = data.1 {
                 DispatchQueue.main.async {
                     self?.imgUser.image = image
                 }
