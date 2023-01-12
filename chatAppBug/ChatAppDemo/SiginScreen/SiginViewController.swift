@@ -29,9 +29,8 @@ final class SiginViewController: UIViewController {
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        presenter.fetchUser() 
         super.viewWillAppear(animated)
-        
+        presenter.fetchUser()
         navigationController?.setNavigationBarHidden(true, animated: animated)
     }
 
@@ -45,7 +44,6 @@ final class SiginViewController: UIViewController {
         setupBtSaveData()
         setupBtSignUp()
         setupButtonLoginFaceBook()
-        //btSigin.isEnabled = false
     }
     
     private func setupUITextField() {
@@ -53,7 +51,7 @@ final class SiginViewController: UIViewController {
         lbPasswordError.isHidden = true
         
         tfEmail.text = "long@gmail.com"
-        tfPassword.text = "123456"
+        tfPassword.text = "12345678"
         
         tfEmail.rx.controlEvent(.editingDidEnd).map {[weak self]textField in
             return self?.tfEmail.text

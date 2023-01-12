@@ -191,12 +191,8 @@
 		9D155BA32940538D003C802E /* ChatAppDemo */ = {
 			isa = PBXGroup;
 			children = (
-				9DD70B87295A83380054448E /* FireBaseService */,
-				9DD70B91295A84040054448E /* ImageService */,
+				9DDF93A529700187007697FE /* Service */,
 				9DD70B8A295A83800054448E /* Models */,
-				9DD70B94295A84510054448E /* FacebookService */,
-				9DD70B97295A848C0054448E /* GoogleService */,
-				9DD70B9A295A84C00054448E /* ZaloService */,
 				9D41EF102947087E00768CBA /* RegisterScreen */,
 				9D91349F294176C90065578D /* SiginScreen */,
 				9D9134A12941772F0065578D /* ListUserViewContronller */,
@@ -380,8 +376,7 @@
 			children = (
 				9DD70B95295A84710054448E /* FacebookService.swift */,
 			);
-			name = FacebookService;
-			path = ../FacebookService;
+			path = FacebookService;
 			sourceTree = "<group>";
 		};
 		9DD70B97295A848C0054448E /* GoogleService */ = {
@@ -389,8 +384,7 @@
 			children = (
 				9DD70B98295A84A00054448E /* GoogleService.swift */,
 			);
-			name = GoogleService;
-			path = ../GoogleService;
+			path = GoogleService;
 			sourceTree = "<group>";
 		};
 		9DD70B9A295A84C00054448E /* ZaloService */ = {
@@ -399,8 +393,7 @@
 				9DD70B9D295A84F10054448E /* ZaloConfig */,
 				9DD70B9B295A84E60054448E /* ZaloService.swift */,
 			);
-			name = ZaloService;
-			path = ../ZaloService;
+			path = ZaloService;
 			sourceTree = "<group>";
 		};
 		9DD70B9D295A84F10054448E /* ZaloConfig */ = {
@@ -419,6 +412,18 @@
 				9D4199532951BBF8008092BF /* ListUserActiveCollectionCell.swift */,
 			);
 			path = CollectionView;
+			sourceTree = "<group>";
+		};
+		9DDF93A529700187007697FE /* Service */ = {
+			isa = PBXGroup;
+			children = (
+				9DD70B9A295A84C00054448E /* ZaloService */,
+				9DD70B97295A848C0054448E /* GoogleService */,
+				9DD70B91295A84040054448E /* ImageService */,
+				9DD70B94295A84510054448E /* FacebookService */,
+				9DD70B87295A83380054448E /* FireBaseService */,
+			);
+			path = Service;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -739,7 +744,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = HN.ChatAppDemo;
+				PRODUCT_BUNDLE_IDENTIFIER = HN.ChatAppDemo2.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -769,7 +774,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = HN.ChatAppDemo;
+				PRODUCT_BUNDLE_IDENTIFIER = HN.ChatAppDemo2.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;

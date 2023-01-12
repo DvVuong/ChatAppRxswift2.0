@@ -33,14 +33,12 @@ final class ListUserViewController: UIViewController {
     @IBOutlet private weak var heightCollectionViewContrains: NSLayoutConstraint!
     @IBOutlet private weak var bottomUserTableContrains: NSLayoutConstraint!
     
-    
     private var viewModel: ListUserViewModel!
     private var disponeBag = DisposeBag()
     lazy private var presenterCell = ListCellPresenter()
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
         navigationController?.setNavigationBarHidden(true, animated: animated)
     }
     
@@ -57,7 +55,6 @@ final class ListUserViewController: UIViewController {
     }
     private func setupData() {
         viewModel.fetchUserRxSwift()
-        viewModel.fectchMessageRxSwift()
         viewModel.getImageForCurrentUser()
     }
 
@@ -74,6 +71,12 @@ final class ListUserViewController: UIViewController {
     }
     
     private func onBind() {
+        
+        viewModel.doSomeThing.subscribe {[weak self] _ in
+            self?.listAllUser.reloadData()
+            self?.messageTable.reloadData()
+        }.disposed(by: disponeBag)
+        
         setupCollectionViewRxSwift()
         setupListUserTableView()
         viewModel.imgAvatarUserPublisher.subscribe {[weak self] img in
@@ -126,9 +129,11 @@ final class ListUserViewController: UIViewController {
         }.disposed(by: disponeBag)
         
         //MARK: MessageTableView
-        messageTable.rx.setDelegate(self).disposed(by: disponeBag)
-        viewModel.messageBehaviorSubject.bind(to: self.messageTable.rx.items(cellIdentifier: "messageforUserCell", cellType: MessageForUserCell.self)) { index, data, cell in
-            self.viewModel.reciverUser.subscribe { users in
+       messageTable.rx.setDelegate(self).disposed(by: disponeBag)
+        
+        viewModel.fetchMessageRxSwift().bind(to: self.messageTable.rx.items(cellIdentifier: "messageforUserCell", cellType: MessageForUserCell.self)) { index, data, cell in
+            print("vuongdv", "data.text", data.text)
+            self.viewModel.allOtherUser.subscribe { users in
                 if let user = users.element {
                     for user in user {
                         cell.updateUI(currentUser, message: data, reciverUser: user)
@@ -140,9 +145,11 @@ final class ListUserViewController: UIViewController {
         //MARK: ModelSeclected
         messageTable.rx.modelSelected(Message.self).subscribe {[weak self] mess in
             if let mess = mess.element {
-                if mess.sendId == currentUser.id {
+                if mess.receiverID == currentUser.id {
                     self?.viewModel.changesStateReadMessage()
+//                    print("vuongdv", "Beign Changes State Read message")
                 }
+                //Move To DetailViewViewController
                 if mess.receiverID == currentUser.id {
                     let user = User(name: mess.nameSender, id: mess.sendId, picture: mess.avataSender, email: "", password: "", isActive: false)
                     let vc = DetailViewViewController.instance(user, currentUser: currentUser)
@@ -172,12 +179,25 @@ final class ListUserViewController: UIViewController {
         searchUser.layer.masksToBounds = true
         searchUser.layer.borderWidth = 1
         searchUser.layer.borderColor = UIColor.black.cgColor
-        searchUser.delegate = self
+        
         searchUser.rx.controlEvent(.editingChanged).map {[weak self] textField in
             return self?.searchUser.text
         }.subscribe(onNext: {[weak self]text in
             self?.viewModel.searchUserPublisher.onNext(text ?? "")
         }).disposed(by: disponeBag)
+        
+        searchUser.rx.controlEvent(.editingDidBegin).subscribe { [weak self] _ in
+            UIView.animate(withDuration: 0.2) {
+                self?.listAllUser.isHidden = false
+                self?.listUserActive.isHidden = true
+                self?.messageTable.isHidden = true
+                self?.viewUser.isHidden = true
+                self?.listAllUserTopContrain.constant = 40
+                self?.trailingSearchUserContrains.constant = 100
+                self?.heightSearchUserContrains.constant = 5
+                self?.btCancelSearchUser.isHidden = false
+            }
+        }.disposed(by: disponeBag)
     }
     
     private func setupImageForCurrentUser() {
@@ -218,12 +238,12 @@ final class ListUserViewController: UIViewController {
         btSetting.addTarget(self, action: #selector(didTapSetting(_:)), for: .touchUpInside)
     }
     //MARK: -ACtion
-   
     @objc private func didTapSetting(_ sender: Any) {
        guard let user = viewModel.getcurrentUser() else {return}
         let vc = SettingViewController.instance(user)
         navigationController?.pushViewController(vc, animated: true)
     }
+    
     @objc private func didtapCancel(_ sender: UIButton) {
         UIView.animate(withDuration: 0.5) {
             self.listAllUser.isHidden = true
@@ -256,24 +276,6 @@ extension ListUserViewController: UICollectionViewDelegateFlowLayout {
 }
 
 //MARK: Extension
-extension ListUserViewController: UITextFieldDelegate {
-    func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
-        if textField === searchUser {
-            UIView.animate(withDuration: 0.2) {
-                self.listAllUser.isHidden = false
-                self.listUserActive.isHidden = true
-                self.messageTable.isHidden = true
-                self.viewUser.isHidden = true
-                self.listAllUserTopContrain.constant = 40
-                self.trailingSearchUserContrains.constant = 100
-                self.heightSearchUserContrains.constant = 5
-                self.btCancelSearchUser.isHidden = false
-            }
-        }
-        return true
-    }
-}
-
 extension ListUserViewController {
     @objc func keyboardWillShow(_ sender: NSNotification) {
         let keyboardframe = (sender.userInfo?[UIResponder.keyboardFrameEndUserInfoKey]! as! NSValue).cgRectValue.height

@@ -56,7 +56,7 @@ class DetailViewModel {
         self.messages.removeAll()
         guard let reciverUser = receiverUser else {return}
         guard let senderUser = self.currentUser else { return }
-        self.messages.removeAll()
+        
         FirebaseService.share.fetchMessageRxSwift(reciverUser, senderUser: senderUser).subscribe {[weak self] data in
             if let data = data.element {
                 let mess = Message(dict: data)
@@ -84,7 +84,7 @@ class DetailViewModel {
         return Observable.create { [weak self] observable in
             var image: UIImage? = nil
             if let reciverUser = self?.receiverUser {
-                FirebaseService.share.fetchUser().subscribe { users in
+                FirebaseService.share.fetchUserRxSwift().subscribe { users in
                     if let user = users.element {
                         let userState = user.filter({$0.id == reciverUser.id})
                         userState.forEach { user in

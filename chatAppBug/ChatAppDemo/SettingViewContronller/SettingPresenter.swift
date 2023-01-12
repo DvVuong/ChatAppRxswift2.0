@@ -30,7 +30,7 @@ class SettingPresenter {
     //MARK: -Action
     func setStateUserForLogOut() {
         guard let user = user else  {return}
-        FirebaseService.share.changeStateInActiveForUser(user)
+        FirebaseService.share.changeStateActiveForUserLogin(user, isActive: false)
     }
     
     func fetchNewAvatarUrl(_ image: UIImage) {

@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>GIDClientID</key>
-    <string>144686382653-8o2a5hjsub5l777b4ru672c3ch64oqj2.apps.googleusercontent.com</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -41,6 +39,8 @@
 	<string>cfe7a7e1ec767ea91b80a7b9c5f1c1e4</string>
 	<key>FacebookDisplayName</key>
 	<string>ChatApp</string>
+	<key>GIDClientID</key>
+	<string>144686382653-8o2a5hjsub5l777b4ru672c3ch64oqj2.apps.googleusercontent.com</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>zalosdk</string>

@@ -7,7 +7,7 @@
 import Foundation
 import RxSwift
 import GoogleSignIn
-class GoogleService {
+public class GoogleService {
     static var shared = GoogleService()
     
     func login(_ vc: SiginViewController) -> Observable<User> {
@@ -16,9 +16,7 @@ class GoogleService {
                 if error != nil {return}
                 guard let signInResult = signInResult else {return}
                 let user = signInResult.user
-                
                 guard let email = user.profile?.email else {return}
-                
                 guard let name = user.profile?.name else {return}
                 guard let id = user.userID else {return}
                 guard let profilePicUrl = user.profile?.imageURL(withDimension: 320) else {return}
@@ -29,7 +27,6 @@ class GoogleService {
         }
         
     }
-    
     
     func logout() {
         GIDSignIn.sharedInstance.signOut()

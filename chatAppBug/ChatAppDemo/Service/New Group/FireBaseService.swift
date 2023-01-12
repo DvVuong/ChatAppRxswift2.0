@@ -8,7 +8,7 @@ import Firebase
 import FirebaseFirestore
 import RxSwift
 
-class FirebaseService {
+public class FirebaseService {
     
     static var share = FirebaseService()
     private let db = Firestore.firestore()
@@ -19,6 +19,9 @@ class FirebaseService {
     private let _message = "message"
     private let _imageMessage = "ImageMessage"
     private let _avatar = "Avatar"
+    private let _senderUserkey = Firestore.firestore().collection("message").document().documentID
+    private let _reciverUserKey = Firestore.firestore().collection("message").document().documentID
+    private var _messageID: String?
     
     func fetchUserRxSwift() -> Observable<[User]> {
         return Observable.create {[weak self] observable in
@@ -34,47 +37,14 @@ class FirebaseService {
        
     }
     
-    func fetchUser() -> Observable<[User]> {
-        return Observable.create {[weak self] observable in
-            self?.db.collection(self?._user ?? "").addSnapshotListener { (querySnapshot, error) in
-                if error != nil {return}
-                guard let querySnapshot = querySnapshot?.documents else { return }
-                let users = querySnapshot.map({User(dict: $0.data())})
-                observable.onNext(users)
-            }
-            return Disposables.create()
-        }
-        
-    }
-    
-    // MARK: fetchMessage
-    func fetchMessageRxSwift(_ receiverUser: User, senderUser: User) -> Observable<[String: Any]> {
-        return Observable.create {[weak self] observable in
-            let listen = self?.db.collection(self?._message ?? "")
-                .document(senderUser.id)
-                .collection(receiverUser.id)
-                .addSnapshotListener { queriSnapshot, error in
-                    if error != nil {return}
-                    guard let data = queriSnapshot?.documentChanges else {return}
-                    data.forEach { doc in
-                        if doc.type == .added || doc.type == .removed {
-                            let value = doc.document.data()
-                            observable.onNext(value)
-                        }
-                    }
-                }
-            return Disposables.create()
-            listen?.remove()
-        }
-    }
-    
     // MARK: SendMessage
     func sendMessage(with message: String, receiverUser: User, senderUser: User) {
         let autoKey = self.db.collection(_message).document().documentID
+        self._messageID = autoKey
         let document = db.collection(_message)
             .document(senderUser.id)
             .collection(receiverUser.id)
-            .document()
+            .document(autoKey)
         let data: [String: Any] = [
                 "nameSender": senderUser.name,
                 "avataSender":senderUser.picture,
@@ -86,13 +56,13 @@ class FirebaseService {
                 "receiverID": receiverUser.id,
                 "time": Date().timeIntervalSince1970,
                 "read": false,
-                "messageKey": autoKey
+                "messageID": autoKey
         ]
         document.setData(data)
         let reciverDocument = db.collection(_message)
             .document(receiverUser.id)
             .collection(senderUser.id)
-            .document()
+            .document(autoKey)
         reciverDocument.setData(data)
     }
     
@@ -112,7 +82,7 @@ class FirebaseService {
               let document =  self?.db.collection(self?._message ?? "")
                     .document(senderUser.id)
                     .collection(receiverUser.id)
-                    .document()
+                    .document(autoKey)
                 
                 let data = [
                     "nameSender": senderUser.name,
@@ -128,39 +98,42 @@ class FirebaseService {
                     "ratioImage": ratioImage,
                     "messageKey": autoKey
                 ]
-                
                 document?.setData(data)
-                
                guard let reciverdocument = self?.db.collection(self?._message ?? "")
                     .document(receiverUser.id)
                     .collection(senderUser.id)
-                    .document() else {return}
-                
+                    .document(autoKey) else {return}
                 reciverdocument.setData(data)
             }
         }
-        
     }
     
-    func changeStateReadMessage(_ senderUser: User, revicerUser: User) {
+    func changeStateReadMessage(_ senderUser: User, revicerUser: User , messageID: String) {
         self.db.collection(_message)
             .document(senderUser.id)
             .collection(revicerUser.id)
-            .whereField("read", isEqualTo: false)
-            .getDocuments { querydata, error in
-                if error != nil {return}
-                guard let doc = querydata?.documents else { return }
-                doc.forEach { [weak self] doc in
-                    let value = Message(dict: doc.data())
-                    if value.receiverID == revicerUser.id || value.receiverID == senderUser.id {
-                        self?.db.collection(self!._message)
-                            .document(senderUser.id)
-                            .collection(revicerUser.id)
-                            .document()
-                            .updateData(["read" : true])
+            .document(messageID)
+            .updateData(["read" : true])
+//        print("vuongdv", "Did changes State Read Message")
+    }
+    // MARK: fetchMessage
+    func fetchMessageRxSwift(_ receiverUser: User, senderUser: User) -> Observable<[String: Any]> {
+        return Observable.create {[weak self] observable in
+           let listen =  self?.db.collection(self?._message ?? "")
+                .document(senderUser.id)
+                .collection(receiverUser.id)
+                .addSnapshotListener { queriSnapshot, error in
+                    if error != nil {return}
+                    guard let data = queriSnapshot?.documentChanges else {return}
+                    for doc in data {
+                        if doc.type == .added || doc.type == .modified || doc.type == .modified {
+                            observable.onNext(doc.document.data())
+                        }
                     }
-                }
-            }
+               }
+            return Disposables.create()
+            listen?.remove()
+        }
     }
     
     func createAccount(email: String,  password: String, name: String) {
@@ -175,7 +148,7 @@ class FirebaseService {
                 "name": name,
                 "isActive": false
             ]
-            self.db.collection("user").document(autoKey).setData(data)
+            self.db.collection(_user).document(autoKey).setData(data)
          
         } else {
             let data: [String: Any] = [
@@ -216,33 +189,23 @@ class FirebaseService {
         self.db.collection(_user).document(id).setData(data)
     }
     
-    func changeStateActiveForUser(_ currentUser: User) {
-        self.db.collection(_user)
-        self.db.collection(self._user).document(currentUser.id).updateData(["isActive" : true])
+    func changeStateActiveForUserLogin(_ currentUser: User, isActive: Bool) {
+        self.db.collection(self._user).document(currentUser.id).updateData(["isActive" : isActive])
     }
-    
-    func changeStateInActiveForUser(_ currentUser: User) {
-        self.db.collection(_user)
-        self.db.collection(self._user).document(currentUser.id).updateData(["isActive" : false])
-    }
-    
+
     func updateAvatar(_ currentUser: User) {
-        self.db.collection(_user)
         self.db.collection(self._user).document(currentUser.id).updateData(["avatar" : self.imgUrl])
     }
     
     func updateName(_ currentUser: User, name: String) {
-        self.db.collection(_user)
         self.db.collection(self._user).document(currentUser.id).updateData(["name" : name])
     }
     
     func updateEmail(_ currentUser: User, email: String) {
-        self.db.collection(_user)
         self.db.collection(self._user).document(currentUser.id).updateData(["email" : email])
     }
     
     func updatePassword(_ currentUser: User, password: String) {
-        self.db.collection(_user)
         self.db.collection(self._user).document(currentUser.id).updateData(["password" : password])
     }
     

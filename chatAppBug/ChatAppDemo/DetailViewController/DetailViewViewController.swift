@@ -34,6 +34,7 @@ final class DetailViewViewController: UIViewController {
     private let bag = DisposeBag()
     private var imgPicker = UIImagePickerController()
     private var viewModel: DetailViewModel!
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
@@ -101,7 +102,7 @@ final class DetailViewViewController: UIViewController {
             } else {
                 let cell = self.convertiontable.dequeueReusableCell(withIdentifier: "reciverUser") as! ReciverUserCell
                 cell.updateUI(data)
-                self.scrollToBottom()
+                //self.scrollToBottom()
                 return cell
             }
            
@@ -112,9 +113,11 @@ final class DetailViewViewController: UIViewController {
             guard let data = data.element else {return}
              let users = data.0
                 users.forEach { user in
-                    self?.lbNameUser.text  = user.name
-                    self?.lbState.text = user.isActive ? "Active now" : "Not active"
-                    self?.imgStateUser.tintColor = user.isActive ? .systemGreen : .systemGray
+                    DispatchQueue.main.async {
+                        self?.lbNameUser.text  = user.name
+                        self?.lbState.text = user.isActive ? "Active now" : "Not active"
+                        self?.imgStateUser.tintColor = user.isActive ? .systemGreen : .systemGray
+                    }
                 }
             if let image = data.1 {
                 DispatchQueue.main.async {

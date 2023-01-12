@@ -8,7 +8,7 @@ import Foundation
 import ZaloSDK
 import RxSwift
 
-class ZaloService {
+public class ZaloService {
     
     static var shared = ZaloService()
     var userZalo = PublishSubject<User>()

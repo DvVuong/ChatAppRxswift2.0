@@ -50,7 +50,6 @@ final class SettingViewController: UIViewController {
         setupTextField()
     }
     
-
     private func setUpBtLogOut() {
         btLogout.setTitle("Log Out", for: .normal)
         btLogout.addTarget(self, action: #selector(didTapLogOut(_:)), for: .touchUpInside)

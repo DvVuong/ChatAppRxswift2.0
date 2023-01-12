@@ -7,7 +7,7 @@
 import Foundation
 import FBSDKLoginKit
 import RxSwift
-class FaceBookService {
+public class FaceBookService {
     static var shared = FaceBookService()
     
     
@@ -19,7 +19,6 @@ class FaceBookService {
                 if error != nil {return}
                 let result = result as! [String: Any]
                 let currentUser = User(dict: result)
-                print("vuongdv4", result)
                 observable.onNext((currentUser, result))
                 
             }

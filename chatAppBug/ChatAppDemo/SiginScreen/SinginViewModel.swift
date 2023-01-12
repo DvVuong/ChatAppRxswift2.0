@@ -23,7 +23,6 @@ class SinginViewModel {
     let emailtextPublisherSubjetc = PublishSubject<String>()
     let passwordPublisherSubject = PublishSubject<String>()
     
-    
     let emailError = BehaviorSubject<String?>(value: "")
     let passwordError = BehaviorSubject<String?>(value: "")
     private let disponeBag = DisposeBag()
@@ -49,7 +48,7 @@ class SinginViewModel {
     //MARK: -Fetch User
     func fetchUser() {
         self.users.removeAll()
-        FirebaseService.share.fetchUser().subscribe {[weak self] users in
+        FirebaseService.share.fetchUserRxSwift().subscribe {[weak self] users in
             if let users = users.element {
                 self?.users.append(contentsOf: users)
             }
@@ -64,10 +63,8 @@ class SinginViewModel {
         let pictureData: [String: Any] = result["picture"] as? [String: Any] ?? [:]
         let pictureUrl: [String: Any] = pictureData["data"] as? [String: Any] ?? [:]
         let url = pictureUrl["url"] as? String ?? ""
-    
         FirebaseService.share.registerSocialMedia(name, email: email, id: id, picture: url)
     }
-    
     
     //MARK: -Login
     func loginZalo(_ vc: SiginViewController) -> Observable<User> {
@@ -76,7 +73,6 @@ class SinginViewModel {
             
             ZaloService.shared.userZalo.subscribe {[weak self] user in
                 if let user = user.element {
-                    print("vuongdv", user)
                     FirebaseService.share.registerSocialMedia(user.name, email: user.email, id: user.id, picture: user.picture)
                     self?.changeStateUser(user)
                     observable.onNext(user)
@@ -170,7 +166,7 @@ class SinginViewModel {
     
     //MARK: Change State User
     func changeStateUser(_ currentUser: User) {
-        FirebaseService.share.changeStateActiveForUser(currentUser)
+        FirebaseService.share.changeStateActiveForUserLogin(currentUser, isActive: true)
     }
     
     func getUserData() -> [User] {
