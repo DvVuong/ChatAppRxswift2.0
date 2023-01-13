@@ -122,7 +122,7 @@ public class FirebaseService {
                     if error != nil {return}
                     guard let data = queriSnapshot?.documentChanges else {return}
                     for doc in data {
-                        if doc.type == .added || doc.type == .modified || doc.type == .modified {
+                        if doc.type == .added || doc.type == .removed || doc.type == .modified {
                             observable.onNext(doc.document.data())
                         }
                     }

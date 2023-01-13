@@ -56,7 +56,7 @@ class DetailViewModel {
         self.messages.removeAll()
         guard let reciverUser = receiverUser else {return}
         guard let senderUser = self.currentUser else { return }
-        
+        self.messages.removeAll()
         FirebaseService.share.fetchMessageRxSwift(reciverUser, senderUser: senderUser).subscribe {[weak self] data in
             if let data = data.element {
                 let mess = Message(dict: data)

@@ -10,19 +10,15 @@ import FirebaseFirestore
 import RxSwift
 import RxCocoa
 class ListUserViewModel {
-    //MARK: -Properties
     private var db = Firestore.firestore()
     private var allMessages = [String: Message]()
     private let disposeBag = DisposeBag()
-    //MARK: User Properties
     private var reciverUser = PublishSubject<[User]>()
-    private var array = [User]()
     var finalUser = BehaviorSubject(value: [User]())
     var allOtherUser = BehaviorSubject(value: [User]())
     var activeUsers = BehaviorSubject(value: [User]())
     let currentUser: User?
     let imgAvatarUserPublisher = BehaviorSubject<UIImage?>(value: nil)
-    //MARK: Message Properties
     var messages = [Message]()
     let messageBehaviorSubject = BehaviorRelay(value: [Message]())
     let searchUserPublisher = PublishSubject<String>()
@@ -39,29 +35,40 @@ class ListUserViewModel {
         
         searchUserPublisher.subscribe { text in
             if let text = text.element {
-                let lowcaseText = text.lowercased()
+                
                 if text.isEmpty {
-                    self.allOtherUser.subscribe { user in
-                        self.finalUser.onNext(user)
-                    }.disposed(by: self.disposeBag)
+                    textIsEmpty()
                 }else {
-                    self.allOtherUser.subscribe { users in
-                        if let user = users.element {
-                            let searchUser = user.filter{$0.name
-                                    .folding(options: .diacriticInsensitive, locale: nil)
-                                    .lowercased()
-                                    .contains(lowcaseText)
-                            }
-                            self.finalUser.onNext(searchUser)
-                        }
-                    }.disposed(by: self.disposeBag)
+                   fillterData(text)
                 }
             }
             self.doSomeThing.onNext(())
         }.disposed(by: disposeBag)
+        
+        func textIsEmpty() {
+            self.allOtherUser.subscribe { user in
+                self.finalUser.onNext(user)
+            }.disposed(by: self.disposeBag)
+        }
+        
+        func fillterData(_ text: String) {
+            let lowcaseText = text.lowercased()
+            self.allOtherUser.subscribe { users in
+                if let user = users.element {
+                    let searchUser = user.filter{$0.name
+                            .folding(options: .diacriticInsensitive, locale: nil)
+                            .lowercased()
+                            .contains(lowcaseText)
+                    }
+                    self.finalUser.onNext(searchUser)
+                }
+            }.disposed(by: self.disposeBag)
+        }
+        
+        
     }
     //MARK: - FetchUser
-    func fetchUserRxSwift()  {
+    func fetchUserRxSwift() {
         guard let currentId = currentUser?.id else {return}
         FirebaseService.share.fetchUserRxSwift().subscribe {[weak self] users in
             if let users = users.element {
@@ -77,11 +84,12 @@ class ListUserViewModel {
     }
     
     //MARK: - FetchMessage
-    func fetchMessageRxSwift()  {
+    func fetchMessageRxSwift() {
         var temp = [Message]()
         guard let currentUser = currentUser else {return}
         allMessages.removeAll()
         messages.removeAll()
+        temp.removeAll()
         allOtherUser.subscribe {[weak self] users in
             guard let users = users.element else {return}
             for user in users {
@@ -91,6 +99,7 @@ class ListUserViewModel {
                     temp = temp.sorted {
                        return $0.time < $1.time
                    }
+                    self?.doSomeThing.onNext(())
                     temp.forEach { mess in
                         if mess.receiverID == currentUser.id || mess.receiverID == user.id {
                             self?.allMessages[user.id] = mess

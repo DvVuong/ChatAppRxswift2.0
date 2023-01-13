@@ -72,7 +72,6 @@ final class ListUserViewController: UIViewController {
     }
     
     private func onBind() {
-        
         viewModel.doSomeThing.subscribe {[weak self] _ in
             self?.listAllUser.reloadData()
             self?.messageTable.reloadData()
