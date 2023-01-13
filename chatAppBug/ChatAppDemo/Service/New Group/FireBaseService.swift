@@ -116,8 +116,8 @@ public class FirebaseService {
     func fetchMessageRxSwift(_ receiverUser: User, senderUser: User) -> Observable<[String: Any]> {
         return Observable.create {[weak self] observable in
            let listen =  self?.db.collection(self?._message ?? "")
-                .document(receiverUser.id)
-                .collection(senderUser.id)
+                .document(senderUser.id)
+                .collection(receiverUser.id)
                 .addSnapshotListener { queriSnapshot, error in
                     if error != nil {return}
                     guard let data = queriSnapshot?.documentChanges else {return}
