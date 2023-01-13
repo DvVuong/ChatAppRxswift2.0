@@ -15,7 +15,8 @@ class ListUserViewModel {
     private var allMessages = [String: Message]()
     private let disposeBag = DisposeBag()
     //MARK: User Properties
-    private var reciverUser = [User]()
+    private var reciverUser = PublishSubject<[User]>()
+    private var array = [User]()
     var finalUser = BehaviorSubject(value: [User]())
     var allOtherUser = BehaviorSubject(value: [User]())
     var activeUsers = BehaviorSubject(value: [User]())
@@ -23,10 +24,11 @@ class ListUserViewModel {
     let imgAvatarUserPublisher = BehaviorSubject<UIImage?>(value: nil)
     //MARK: Message Properties
     var messages = [Message]()
-    let messageBehaviorSubject = PublishSubject<[Message]>()
+    let messageBehaviorSubject = BehaviorRelay(value: [Message]())
     let searchUserPublisher = PublishSubject<String>()
     let doSomeThing = PublishSubject<Void>()
-    var messageID = ""
+    let reciverIdPublicsher = PublishSubject<(String, String)>()
+    var _messageID = ""
     //MARK: - Init
     init(with data: User) {
         self.currentUser = data
@@ -34,7 +36,6 @@ class ListUserViewModel {
         self.allOtherUser.subscribe { user in
             self.finalUser.onNext(user)
         }.disposed(by: self.disposeBag)
-        
         
         searchUserPublisher.subscribe { text in
             if let text = text.element {
@@ -68,59 +69,57 @@ class ListUserViewModel {
                 let activeUser = users.filter({$0.id != currentId}).filter({$0.isActive == true})
                 self?.allOtherUser.onNext(user)
                 self?.activeUsers.onNext(activeUser)
-                self?.reciverUser.append(contentsOf: user)
+                self?.reciverUser.onNext(user)
+                self?.reciverUser.onCompleted()
+            }
+        }
+        .disposed(by: disposeBag)
+    }
+    
+    //MARK: - FetchMessage
+    func fetchMessageRxSwift()  {
+        var temp = [Message]()
+        guard let currentUser = currentUser else {return}
+        allMessages.removeAll()
+        messages.removeAll()
+        allOtherUser.subscribe {[weak self] users in
+            guard let users = users.element else {return}
+            for user in users {
+                FirebaseService.share.fetchMessageRxSwift(user, senderUser: currentUser).subscribe { data in
+                    let mess = Message(dict: data)
+                    temp.append(mess)
+                    temp = temp.sorted {
+                       return $0.time < $1.time
+                   }
+                    temp.forEach { mess in
+                        if mess.receiverID == currentUser.id || mess.receiverID == user.id {
+                            self?.allMessages[user.id] = mess
+                            self?._messageID = mess.messageID
+                            self?.messages = Array((self?.allMessages.values)!)
+                            self?.messages = self?.messages.sorted {
+                               return $0.time > $1.time
+                           } ?? []
+                        }
+                       self?.messageBehaviorSubject.accept(self?.messages ?? [])
+                    }
+                }.disposed(by: self!.disposeBag)
             }
         }.disposed(by: disposeBag)
-    }
-    //MARK: - FetchMessage
-    
-    func fetchMessageRxSwift() -> Observable<[Message]> {
-        return Observable.create { observable in
-            self.allMessages.removeAll()
-            self.messages.removeAll()
-            self.allOtherUser.subscribe { users in
-                if let users = users.element {
-                    for user in users {
-                        FirebaseService.share.fetchMessageRxSwift(user, senderUser: self.currentUser ?? user).subscribe {[weak self] data in
-                            if let data = data.element {
-                                let mess = Message(dict: data)
-                                if mess.receiverID == self?.currentUser?.id || mess.receiverID == user.id {
-                                    self?.allMessages[user.id] = mess
-                                    self?.messageID = mess.messageID
-                                    self?.messages = Array((self?.allMessages.values)!)
-                                    self?.messages = self?.messages.sorted {
-                                        return $0.time > $1.time
-                                    } ?? []
-                                }
-                                observable.onNext(self?.messages ?? [])
-                            }
-                        }.disposed(by: self.disposeBag )
-                    }
-                }
-            }.disposed(by: self.disposeBag)
-            return Disposables.create()
-        }
     }
     
     //MARK: - ChangeState Active User    
     func changesStateReadMessage() {
-        guard let currentUser = currentUser else {return}
-        reciverUser.forEach { user in
-            FirebaseService.share.changeStateReadMessage(currentUser, revicerUser: user, messageID: self.messageID)
-//            print("vuongdv", "State on......")
-        }
+        reciverIdPublicsher.subscribe { userID in
+            guard let userID = userID.element else {return}
+            FirebaseService.share.changeStateReadMessage(userID.1, revicerID: userID.0, messageID: self._messageID)
+        }.disposed(by: disposeBag)
     }
-    //MARK: -Getter,Setter
-    func getcurrentUser() -> User?{
-        return currentUser
-    }
-    
-    func getImageForCurrentUser(){
+  
+    func getImageForCurrentUser() {
         if let currentUser = self.currentUser {
             ImageService.share.fetchImage(with: currentUser.picture) {[weak self] image in
                 self?.imgAvatarUserPublisher.onNext(image)
             }
         }
-        
     }
 }

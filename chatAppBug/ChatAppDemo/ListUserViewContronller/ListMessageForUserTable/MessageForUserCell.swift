@@ -51,7 +51,6 @@ class MessageForUserCell: UITableViewCell {
        
         lbTime.text = dateFormater.string(from: time)
         // Show Message and State message
-        
         imgState.isHidden = (message.sendId == currentUser.id) ? true : false
         imgState.tintColor = message.read  ? .white : .systemBlue
         
@@ -71,7 +70,6 @@ class MessageForUserCell: UITableViewCell {
             }
             
         } else {
-            
             lbMessage.text = "\(message.nameSender) sent: \(message.text)"
             lbNameUser.text = message.nameSender
             ImageService.share.fetchImage(with: message.avataSender) { image in
@@ -85,7 +83,6 @@ class MessageForUserCell: UITableViewCell {
             if message.sendId == currentUser.id {
                 lbMessage.text = "you sent a Photo"
             }else {
-                
                 lbMessage.text = "\(message.nameSender) sent a Photo"
             }
             return

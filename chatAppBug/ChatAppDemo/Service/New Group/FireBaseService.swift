@@ -9,7 +9,6 @@ import FirebaseFirestore
 import RxSwift
 
 public class FirebaseService {
-    
     static var share = FirebaseService()
     private let db = Firestore.firestore()
     private var users = [User]()
@@ -19,9 +18,6 @@ public class FirebaseService {
     private let _message = "message"
     private let _imageMessage = "ImageMessage"
     private let _avatar = "Avatar"
-    private let _senderUserkey = Firestore.firestore().collection("message").document().documentID
-    private let _reciverUserKey = Firestore.firestore().collection("message").document().documentID
-    private var _messageID: String?
     
     func fetchUserRxSwift() -> Observable<[User]> {
         return Observable.create {[weak self] observable in
@@ -40,7 +36,6 @@ public class FirebaseService {
     // MARK: SendMessage
     func sendMessage(with message: String, receiverUser: User, senderUser: User) {
         let autoKey = self.db.collection(_message).document().documentID
-        self._messageID = autoKey
         let document = db.collection(_message)
             .document(senderUser.id)
             .collection(receiverUser.id)
@@ -99,6 +94,7 @@ public class FirebaseService {
                     "messageKey": autoKey
                 ]
                 document?.setData(data)
+                
                guard let reciverdocument = self?.db.collection(self?._message ?? "")
                     .document(receiverUser.id)
                     .collection(senderUser.id)
@@ -108,10 +104,10 @@ public class FirebaseService {
         }
     }
     
-    func changeStateReadMessage(_ senderUser: User, revicerUser: User , messageID: String) {
+    func changeStateReadMessage(_ senderID: String, revicerID: String , messageID: String) {
         self.db.collection(_message)
-            .document(senderUser.id)
-            .collection(revicerUser.id)
+            .document(revicerID)
+            .collection(senderID)
             .document(messageID)
             .updateData(["read" : true])
 //        print("vuongdv", "Did changes State Read Message")
@@ -120,8 +116,8 @@ public class FirebaseService {
     func fetchMessageRxSwift(_ receiverUser: User, senderUser: User) -> Observable<[String: Any]> {
         return Observable.create {[weak self] observable in
            let listen =  self?.db.collection(self?._message ?? "")
-                .document(senderUser.id)
-                .collection(receiverUser.id)
+                .document(receiverUser.id)
+                .collection(senderUser.id)
                 .addSnapshotListener { queriSnapshot, error in
                     if error != nil {return}
                     guard let data = queriSnapshot?.documentChanges else {return}
@@ -194,7 +190,7 @@ public class FirebaseService {
     }
 
     func updateAvatar(_ currentUser: User) {
-        self.db.collection(self._user).document(currentUser.id).updateData(["avatar" : self.imgUrl])
+        self.db.collection(self._user).document(currentUser.id).updateData(["picture" : self.imgUrl])
     }
     
     func updateName(_ currentUser: User, name: String) {

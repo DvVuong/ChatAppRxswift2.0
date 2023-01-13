@@ -60,12 +60,10 @@ class DetailViewModel {
         FirebaseService.share.fetchMessageRxSwift(reciverUser, senderUser: senderUser).subscribe {[weak self] data in
             if let data = data.element {
                 let mess = Message(dict: data)
-                if mess.receiverID == reciverUser.id || mess.receiverID == senderUser.id {
                     self?.messages.append(mess)
                     self?.messages = self?.messages.sorted {
                         $0.time < $1.time
                     } ?? []
-                }
                 self?.messageBehaviorSubject.onNext(self?.messages ?? [])
             }
         }.disposed(by: bag)

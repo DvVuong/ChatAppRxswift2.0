@@ -53,8 +53,9 @@ final class ListUserViewController: UIViewController {
         setupData()
         onBind()
     }
-    private func setupData() {
+    private func setupData()  {
         viewModel.fetchUserRxSwift()
+        viewModel.fetchMessageRxSwift()
         viewModel.getImageForCurrentUser()
     }
 
@@ -104,6 +105,7 @@ final class ListUserViewController: UIViewController {
                    ,cellType: ListUserActiveCollectionCell.self)) { index, data, cell in
             cell.updateUI(data, text: self.searchUser.text ?? "")
         }.disposed(by: disponeBag)
+        
          //MARK: Seclected model
         self.listUserActive.rx.modelSelected(User.self).bind { user in
             let vc = DetailViewViewController.instance(user, currentUser: currentUser)
@@ -120,6 +122,7 @@ final class ListUserViewController: UIViewController {
         viewModel.finalUser.bind(to: self.listAllUser.rx.items(cellIdentifier: "listUsertableCell", cellType: ListAllUserTableCell.self)) { index, data, cell in
             cell.updateUI(data)
         }.disposed(by: disponeBag)
+        
         //MARK: ModelSelected
         listAllUser.rx.modelSelected(User.self).subscribe {[weak self] user in
             if let user = user.element {
@@ -131,8 +134,8 @@ final class ListUserViewController: UIViewController {
         //MARK: MessageTableView
        messageTable.rx.setDelegate(self).disposed(by: disponeBag)
         
-        viewModel.fetchMessageRxSwift().bind(to: self.messageTable.rx.items(cellIdentifier: "messageforUserCell", cellType: MessageForUserCell.self)) { index, data, cell in
-            print("vuongdv", "data.text", data.text)
+        viewModel.messageBehaviorSubject.bind(to: self.messageTable.rx.items(cellIdentifier: "messageforUserCell", cellType: MessageForUserCell.self)) { index, data, cell in
+            //print("vuongdv1", data.time, data.text)
             self.viewModel.allOtherUser.subscribe { users in
                 if let user = users.element {
                     for user in user {
@@ -141,13 +144,15 @@ final class ListUserViewController: UIViewController {
                 }
             }.disposed(by: self.disponeBag)
         }.disposed(by: disponeBag)
-        
+    
         //MARK: ModelSeclected
         messageTable.rx.modelSelected(Message.self).subscribe {[weak self] mess in
             if let mess = mess.element {
+                
                 if mess.receiverID == currentUser.id {
                     self?.viewModel.changesStateReadMessage()
-//                    print("vuongdv", "Beign Changes State Read message")
+                    self?.viewModel.reciverIdPublicsher.onNext((mess.receiverID, mess.sendId))
+                   // print("vuongdv", "Beign Changes State Read message")
                 }
                 //Move To DetailViewViewController
                 if mess.receiverID == currentUser.id {
@@ -209,7 +214,7 @@ final class ListUserViewController: UIViewController {
     }
     
     private func setupLbNameUser() {
-        guard let currentuser = viewModel.getcurrentUser() else { return }
+        guard let currentuser = viewModel.currentUser else {return}
         lbNameUser.text = currentuser.name
     }
     
@@ -239,7 +244,7 @@ final class ListUserViewController: UIViewController {
     }
     //MARK: -ACtion
     @objc private func didTapSetting(_ sender: Any) {
-       guard let user = viewModel.getcurrentUser() else {return}
+        guard let user = viewModel.currentUser else {return}
         let vc = SettingViewController.instance(user)
         navigationController?.pushViewController(vc, animated: true)
     }
