@@ -20,11 +20,9 @@ public class FaceBookService {
                 let result = result as! [String: Any]
                 let currentUser = User(dict: result)
                 observable.onNext((currentUser, result))
-                
             }
             return Disposables.create()
         }
-       
     }
     
     func logout() {

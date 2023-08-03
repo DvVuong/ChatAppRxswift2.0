@@ -23,7 +23,7 @@ class ListUserViewModel {
     let imgAvatarUserPublisher = BehaviorSubject<UIImage?>(value: nil)
     //MARK: Message Properties
     var messages = [Message]()
-    let messageBehaviorSubject = PublishSubject<[Message]>()
+    let messageBehaviorSubject = BehaviorSubject<[Message]>(value: [])
     let searchUserPublisher = PublishSubject<String>()
     let doSomeThing = PublishSubject<Void>()
     var messageID = ""
@@ -92,6 +92,7 @@ class ListUserViewModel {
                                         return $0.time > $1.time
                                     } ?? []
                                 }
+                                print("vuongdv mess \(self?.messages.count)")
                                 observable.onNext(self?.messages ?? [])
                             }
                         }.disposed(by: self.disposeBag )

@@ -22,7 +22,7 @@ class RegisterViewcontroller: UIViewController {
     
     @IBOutlet private weak var tfEmail: CustomTextField!
     @IBOutlet private weak var tfPassword: CustomTextField!
-    @IBOutlet private weak var tfPhoneNumberPassword: CustomTextField!
+   // @IBOutlet private weak var tfPhoneNumberPassword: CustomTextField!
     @IBOutlet private weak var imgAvtar: CustomImage!
     @IBOutlet private weak var btSignUp: UIButton!
     @IBOutlet private weak var tfName: CustomTextField!
@@ -35,6 +35,11 @@ class RegisterViewcontroller: UIViewController {
     
     private var disponeBag = DisposeBag()
     lazy private var viewModel = ResgiterPresenterView()
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        view.endEditing(true)
+    }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -101,8 +106,6 @@ class RegisterViewcontroller: UIViewController {
             self.viewModel.passwordPublisherSubject.onNext(text ?? "")
         }).disposed(by: disponeBag)
     }
-    
-    
     
     private func setupImgAvatar() {
         imgAvtar.isUserInteractionEnabled = true

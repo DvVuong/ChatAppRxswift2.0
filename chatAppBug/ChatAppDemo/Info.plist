@@ -7,7 +7,7 @@
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>fb734874944229886</string>
+				<string>fb797862252119298</string>
 			</array>
 		</dict>
 		<dict>
@@ -34,9 +34,9 @@
 		</dict>
 	</array>
 	<key>FacebookAppID</key>
-	<string>734874944229886</string>
+	<string>797862252119298</string>
 	<key>FacebookClientToken</key>
-	<string>cfe7a7e1ec767ea91b80a7b9c5f1c1e4</string>
+	<string>af2327ab410c7b8a0b7f5bc570d900ee</string>
 	<key>FacebookDisplayName</key>
 	<string>ChatApp</string>
 	<key>GIDClientID</key>

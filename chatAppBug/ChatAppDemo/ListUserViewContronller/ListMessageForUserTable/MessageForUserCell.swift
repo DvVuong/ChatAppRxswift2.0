@@ -60,18 +60,14 @@ class MessageForUserCell: UITableViewCell {
         }
       
         if message.sendId == currentUser.id || message.receiverID == reciverUser.id {
-            lbMessage.text = "you: \(message.text)"
             lbNameUser.text = message.receivername
-           
             // Show Avatar
             ImageService.share.fetchImage(with: message.avatarReciverUser) { image in
                 DispatchQueue.main.async {
                     self.imgAvt.image = image
                 }
             }
-            
         } else {
-            
             lbMessage.text = "\(message.nameSender) sent: \(message.text)"
             lbNameUser.text = message.nameSender
             ImageService.share.fetchImage(with: message.avataSender) { image in
@@ -85,11 +81,14 @@ class MessageForUserCell: UITableViewCell {
             if message.sendId == currentUser.id {
                 lbMessage.text = "you sent a Photo"
             }else {
-                
                 lbMessage.text = "\(message.nameSender) sent a Photo"
             }
-            return
+        } else {
+            if message.sendId == currentUser.id {
+                lbMessage.text = "you: \(message.text)"
+            }else {
+                lbMessage.text = "\(message.nameSender) sent: \(message.text)"
+            }
         }
-       
     }
 }

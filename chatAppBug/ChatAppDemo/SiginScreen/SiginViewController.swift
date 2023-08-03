@@ -184,7 +184,6 @@ extension SiginViewController: LoginButtonDelegate {
                             self?.navigationController?.pushViewController(vc, animated: true)
                         }
                     }
-                    
                 }.disposed(by: self!.disponeBag)
             }
         }.disposed(by: disponeBag)

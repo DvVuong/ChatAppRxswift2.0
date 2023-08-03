@@ -64,9 +64,7 @@ final class ListUserViewController: UIViewController {
         setupImageForCurrentUser()
         setupBtSetting()
         setupLbNameUser()
-        setuplbNewMessageNotification()
         setupBtCacncelSearchUser()
-        setuplbNewMessageNotification()
         keyBoardObserver()
     }
     
@@ -131,8 +129,18 @@ final class ListUserViewController: UIViewController {
         //MARK: MessageTableView
        messageTable.rx.setDelegate(self).disposed(by: disponeBag)
         
-        viewModel.fetchMessageRxSwift().bind(to: self.messageTable.rx.items(cellIdentifier: "messageforUserCell", cellType: MessageForUserCell.self)) { index, data, cell in
-            print("vuongdv", "data.text", data.text)
+        viewModel.fetchMessageRxSwift()
+            .do(onNext: { [weak self] messages in
+                guard let `self` = self else {return}
+                self.lbNewMessageNotification.isHidden = true
+                self.lbNewMessageNotification.text = "No new message \nNew messages will show up here"
+                if messages.count == 0 {
+                    self.lbNewMessageNotification.isHidden = false
+                }else {
+                    self.lbNewMessageNotification.isHidden = true
+                }
+            })
+            .bind(to: self.messageTable.rx.items(cellIdentifier: "messageforUserCell", cellType: MessageForUserCell.self)) { index, data, cell in
             self.viewModel.allOtherUser.subscribe { users in
                 if let user = users.element {
                     for user in user {
@@ -147,7 +155,6 @@ final class ListUserViewController: UIViewController {
             if let mess = mess.element {
                 if mess.receiverID == currentUser.id {
                     self?.viewModel.changesStateReadMessage()
-//                    print("vuongdv", "Beign Changes State Read message")
                 }
                 //Move To DetailViewViewController
                 if mess.receiverID == currentUser.id {
@@ -218,20 +225,6 @@ final class ListUserViewController: UIViewController {
        
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
    }
-    
-    private func setuplbNewMessageNotification() {
-        lbNewMessageNotification.isHidden = true
-        lbNewMessageNotification.text = "No new message \nNew messages will show up here"
-        viewModel.messageBehaviorSubject.subscribe { messages in
-            if let messages = messages.element {
-                if messages.count == 0 {
-                    self.lbNewMessageNotification.isHidden = false
-                }else {
-                    self.lbNewMessageNotification.isHidden = true
-                }
-            }
-        }.disposed(by: disponeBag)
-    }
     
     private func setupBtSetting() {
         btSetting.setTitle("", for: .normal)
